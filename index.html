@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>업무 지시 현황판</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f0;
+    --surface-0: #f5f4f0;
+    --surface-1: #eeede8;
+    --surface-2: #ffffff;
+    --text-primary: #1a1a18;
+    --text-secondary: #5f5e5a;
+    --text-muted: #9c9a92;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.18);
+    --border-accent: #378ADD;
+    --fill-accent: #378ADD;
+    --on-accent: #ffffff;
+    --bg-accent: #E6F1FB;
+    --text-accent: #185FA5;
+    --bg-success: #EAF3DE;
+    --text-success: #3B6D11;
+    --bg-danger: #FCEBEB;
+    --text-danger: #A32D2D;
+    --radius: 8px;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18;
+      --surface-0: #1a1a18;
+      --surface-1: #232320;
+      --surface-2: #2c2c2a;
+      --text-primary: #e8e6de;
+      --text-secondary: #a8a69e;
+      --text-muted: #6e6c65;
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.14);
+      --border-accent: #378ADD;
+      --fill-accent: #378ADD;
+      --bg-accent: #0C447C;
+      --text-accent: #85B7EB;
+      --bg-success: #27500A;
+      --text-success: #97C459;
+      --bg-danger: #791F1F;
+      --text-danger: #F09595;
+    }
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+  .top-bar h1 { font-size: 20px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .new-task-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 9px 18px; border-radius: var(--radius);
+    border: 0.5px solid var(--border-strong);
+    background: var(--surface-2); color: var(--text-primary);
+    font-size: 13px; cursor: pointer; transition: background .15s;
+    font-family: var(--font-sans);
+  }
+  .new-task-btn:hover { background: var(--surface-1); }
+
+  .flow-bar {
+    display: flex; align-items: center;
+    background: var(--surface-2); border: 0.5px solid var(--border);
+    border-radius: 12px; padding: 1.2rem 1.5rem;
+    margin-bottom: 1.5rem; gap: 4px;
+  }
+  .flow-step { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+  .flow-dot {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .flow-label { font-size: 12px; color: var(--text-secondary); text-align: center; line-height: 1.4; }
+  .flow-arrow { color: var(--text-muted); font-size: 18px; flex-shrink: 0; margin-top: -14px; }
+  .dot-me { background: #EEEDFE; color: #534AB7; }
+  .dot-team { background: #E1F5EE; color: #0F6E56; }
+  .dot-ops { background: #FAEEDA; color: #854F0B; }
+  .dot-report { background: #E6F1FB; color: #185FA5; }
+
+  .section-label {
+    font-size: 12px; color: var(--text-muted);
+    margin-bottom: 10px; letter-spacing: .04em;
+  }
+
+  .form-card {
+    background: var(--surface-2); border: 0.5px solid var(--border);
+    border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem;
+    display: none;
+  }
+  .form-card.open { display: block; }
+  .form-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .form-row:last-child { margin-bottom: 0; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+  .form-group label { font-size: 12px; color: var(--text-secondary); }
+  .form-group input, .form-group select, .form-group textarea {
+    font-size: 13px; padding: 9px 12px; border-radius: var(--radius);
+    border: 0.5px solid var(--border-strong);
+    background: var(--surface-1); color: var(--text-primary);
+    width: 100%; outline: none; font-family: var(--font-sans);
+    transition: border-color .15s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--border-accent);
+  }
+  .form-group textarea { resize: none; height: 80px; line-height: 1.6; }
+  .submit-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+  .btn-primary {
+    padding: 9px 22px; background: var(--fill-accent); color: var(--on-accent);
+    border: none; border-radius: var(--radius); font-size: 13px; cursor: pointer;
+    font-family: var(--font-sans); display: flex; align-items: center; gap: 6px;
+    transition: opacity .15s;
+  }
+  .btn-primary:hover { opacity: .88; }
+  .btn-ghost {
+    padding: 9px 18px; background: transparent; color: var(--text-secondary);
+    border: 0.5px solid var(--border); border-radius: var(--radius);
+    font-size: 13px; cursor: pointer; font-family: var(--font-sans);
+    transition: background .15s;
+  }
+  .btn-ghost:hover { background: var(--surface-1); }
+
+  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+  @media (max-width: 700px) { .board { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 420px) { .board { grid-template-columns: 1fr; } }
+
+  .col-header {
+    font-size: 12px; font-weight: 500; color: var(--text-secondary);
+    margin-bottom: 8px; padding: 0 2px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .col-count {
+    font-size: 11px; background: var(--surface-1);
+    border: 0.5px solid var(--border); border-radius: 10px;
+    padding: 1px 7px; color: var(--text-muted);
+  }
+  .col-body { min-height: 60px; }
+
+  .task-card {
+    background: var(--surface-2); border: 0.5px solid var(--border);
+    border-radius: 10px; padding: 11px 13px; margin-bottom: 8px;
+    cursor: pointer; transition: border-color .15s, transform .1s;
+    user-select: none;
+  }
+  .task-card:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+  .task-title { font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 6px; line-height: 1.4; }
+  .task-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+  .tag-design { background: #E1F5EE; color: #0F6E56; }
+  .tag-product { background: #FAECE7; color: #993C1D; }
+  .tag-marketing { background: #FAEEDA; color: #854F0B; }
+  .tag-cs { background: #E6F1FB; color: #185FA5; }
+  .tag-urgent { background: var(--bg-danger); color: var(--text-danger); }
+  .task-date { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
+  .task-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.5rem 0; }
+
+  .report-card {
+    background: var(--surface-2); border: 0.5px solid var(--border);
+    border-radius: 12px; padding: 1.1rem 1.25rem; margin-bottom: 10px;
+  }
+  .report-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+  .report-title { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+  .report-from { font-size: 12px; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+  .badge-new { font-size: 11px; padding: 3px 10px; border-radius: 10px; background: var(--bg-accent); color: var(--text-accent); white-space: nowrap; }
+  .badge-done { font-size: 11px; padding: 3px 10px; border-radius: 10px; background: var(--bg-success); color: var(--text-success); white-space: nowrap; }
+  .report-body {
+    font-size: 13px; color: var(--text-secondary); line-height: 1.7;
+    border-left: 2px solid var(--border-strong); padding-left: 12px; margin-bottom: 10px;
+  }
+  .report-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .action-btn {
+    font-size: 12px; padding: 6px 14px; border-radius: var(--radius);
+    border: 0.5px solid var(--border); background: transparent;
+    color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans);
+    transition: background .15s;
+  }
+  .action-btn:hover { background: var(--surface-1); }
+  .action-btn.confirm { border-color: #3B6D11; color: var(--text-success); }
+  .confirm-msg { font-size: 12px; color: var(--text-success); margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+  .empty { font-size: 13px; color: var(--text-muted); padding: 16px 0; }
+
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--text-primary); color: var(--surface-2);
+    padding: 10px 20px; border-radius: var(--radius); font-size: 13px;
+    opacity: 0; transition: all .3s; z-index: 100; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="top-bar">
+    <h1><i class="ti ti-layout-dashboard"></i> 업무 지시 현황판</h1>
+    <button class="new-task-btn" onclick="toggleForm()">
+      <i class="ti ti-plus"></i> 새 업무 지시
+    </button>
+  </div>
+
+  <div class="flow-bar">
+    <div class="flow-step">
+      <div class="flow-dot dot-me"><i class="ti ti-user"></i></div>
+      <div class="flow-label">대표<br>업무 지시</div>
+    </div>
+    <div class="flow-arrow"><i class="ti ti-arrow-right"></i></div>
+    <div class="flow-step">
+      <div class="flow-dot dot-team"><i class="ti ti-users"></i></div>
+      <div class="flow-label">담당 팀<br>업무 수행</div>
+    </div>
+    <div class="flow-arrow"><i class="ti ti-arrow-right"></i></div>
+    <div class="flow-step">
+      <div class="flow-dot dot-ops"><i class="ti ti-briefcase"></i></div>
+      <div class="flow-label">운영 매니저<br>취합·검토</div>
+    </div>
+    <div class="flow-arrow"><i class="ti ti-arrow-right"></i></div>
+    <div class="flow-step">
+      <div class="flow-dot dot-report"><i class="ti ti-file-check"></i></div>
+      <div class="flow-label">대표<br>최종 보고</div>
+    </div>
+  </div>
+
+  <div class="section-label">업무 지시 작성</div>
+  <div class="form-card" id="form-card">
+    <div class="form-row">
+      <div class="form-group" style="flex:3">
+        <label>업무 제목</label>
+        <input type="text" id="task-title-input" placeholder="예: 신규 SNS 캠페인 기획">
+      </div>
+      <div class="form-group">
+        <label>담당 팀</label>
+        <select id="task-team">
+          <option value="">팀 선택</option>
+          <option value="디자인팀">디자인팀</option>
+          <option value="상품개발">상품개발</option>
+          <option value="마케팅">마케팅</option>
+          <option value="CS">CS / 고객지원</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>마감일</label>
+        <input type="date" id="task-due">
+      </div>
+      <div class="form-group">
+        <label>우선순위</label>
+        <select id="task-priority">
+          <option value="보통">보통</option>
+          <option value="긴급">긴급</option>
+          <option value="낮음">낮음</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1">
+        <label>업무 내용</label>
+        <textarea id="task-desc" placeholder="업무 상세 내용을 입력하세요"></textarea>
+      </div>
+    </div>
+    <div class="submit-row">
+      <button class="btn-ghost" onclick="toggleForm()">취소</button>
+      <button class="btn-primary" onclick="addTask()">
+        <i class="ti ti-send" style="font-size:13px"></i> 지시 전달
+      </button>
+    </div>
+  </div>
+
+  <div class="section-label">진행 현황 <span style="color:var(--text-muted);font-size:11px">— 카드를 클릭하면 다음 단계로 이동합니다</span></div>
+  <div class="board">
+    <div>
+      <div class="col-header">접수 <span class="col-count" id="cnt-0">0</span></div>
+      <div class="col-body" id="col-0"></div>
+    </div>
+    <div>
+      <div class="col-header">진행 중 <span class="col-count" id="cnt-1">0</span></div>
+      <div class="col-body" id="col-1"></div>
+    </div>
+    <div>
+      <div class="col-header">운영 검토 <span class="col-count" id="cnt-2">0</span></div>
+      <div class="col-body" id="col-2"></div>
+    </div>
+    <div>
+      <div class="col-header">보고 완료 <span class="col-count" id="cnt-3">0</span></div>
+      <div class="col-body" id="col-3"></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-label">운영 매니저 보고 수신함</div>
+  <div id="report-inbox"></div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const teamTagMap = {
+  '디자인팀': 'tag-design',
+  '상품개발': 'tag-product',
+  '마케팅': 'tag-marketing',
+  'CS': 'tag-cs'
+};
+
+function loadData() {
+  try {
+    const t = localStorage.getItem('tasks');
+    const r = localStorage.getItem('reports');
+    return {
+      tasks: t ? JSON.parse(t) : getDefaultTasks(),
+      reports: r ? JSON.parse(r) : getDefaultReports()
+    };
+  } catch(e) {
+    return { tasks: getDefaultTasks(), reports: getDefaultReports() };
+  }
+}
+
+function saveData() {
+  try {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    localStorage.setItem('reports', JSON.stringify(reports));
+  } catch(e) {}
+}
+
+function getDefaultTasks() {
+  return [
+    { id:1, title:'여름 시즌 상품 비주얼 제작', team:'디자인팀', due:'2026-07-10', priority:'긴급', desc:'여름 신상품 메인 비주얼 및 SNS 소재 제작 요청', status:0 },
+    { id:2, title:'하반기 MD 소싱 리스트 작성', team:'상품개발', due:'2026-07-15', priority:'보통', desc:'하반기 신규 입점 브랜드 소싱 후보 20개 선정', status:1 },
+    { id:3, title:'고객 만족도 설문 결과 분석', team:'CS', due:'2026-07-05', priority:'보통', desc:'6월 고객 만족도 설문 결과를 팀별로 정리하여 보고', status:2 },
+    { id:4, title:'6월 퍼포먼스 마케팅 결과 보고', team:'마케팅', due:'2026-06-30', priority:'보통', desc:'6월 광고 집행 결과 및 ROAS 정리', status:3 }
+  ];
+}
+
+function getDefaultReports() {
+  return [
+    { id:1, taskId:4, from:'운영 매니저', title:'6월 퍼포먼스 마케팅 결과 보고', body:'6월 총 광고비 580만원 집행, ROAS 320% 달성. 인스타그램 릴스 소재 효율이 가장 높았으며 7월에는 해당 소재 집중 운영을 권장합니다.', isNew:true, confirmed:false }
+  ];
+}
+
+let { tasks, reports } = loadData();
+let nextId = tasks.reduce((m,t) => Math.max(m,t.id), 0) + 1;
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function renderBoard() {
+  [0,1,2,3].forEach(s => {
+    const col = document.getElementById('col-' + s);
+    const list = tasks.filter(t => t.status === s);
+    document.getElementById('cnt-' + s).textContent = list.length;
+    if (list.length === 0) {
+      col.innerHTML = '<div class="empty">업무가 없습니다</div>';
+      return;
+    }
+    col.innerHTML = list.map(t => `
+      <div class="task-card" onclick="advanceTask(${t.id})" title="클릭하면 다음 단계로 이동">
+        <div class="task-title">${escHtml(t.title)}</div>
+        <div class="task-meta">
+          <span class="tag ${teamTagMap[t.team] || 'tag-design'}">${escHtml(t.team)}</span>
+          ${t.priority === '긴급' ? '<span class="tag tag-urgent">긴급</span>' : ''}
+          <span class="task-date"><i class="ti ti-calendar" style="font-size:11px"></i> ${escHtml(t.due)}</span>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+function renderReports() {
+  const inbox = document.getElementById('report-inbox');
+  if (reports.length === 0) {
+    inbox.innerHTML = '<div class="empty">수신된 보고가 없습니다.</div>';
+    return;
+  }
+  inbox.innerHTML = reports.map(r => `
+    <div class="report-card">
+      <div class="report-header">
+        <div>
+          <div class="report-title">${escHtml(r.title)}</div>
+          <div class="report-from"><i class="ti ti-arrow-up-right" style="font-size:12px"></i> ${escHtml(r.from)} → 대표</div>
+        </div>
+        ${r.confirmed
+          ? '<span class="badge-done"><i class="ti ti-check" style="font-size:11px"></i> 확인 완료</span>'
+          : r.isNew ? '<span class="badge-new">새 보고</span>' : ''}
+      </div>
+      <div class="report-body">${escHtml(r.body)}</div>
+      ${!r.confirmed ? `
+        <div class="report-actions">
+          <button class="action-btn confirm" onclick="confirmReport(${r.id})">
+            <i class="ti ti-check" style="font-size:12px;vertical-align:-1px"></i> 확인
+          </button>
+        </div>` :
+        '<div class="confirm-msg"><i class="ti ti-circle-check" style="font-size:13px"></i> 확인 완료했습니다</div>'
+      }
+    </div>
+  `).join('');
+}
+
+function advanceTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t || t.status >= 3) return;
+  t.status++;
+  if (t.status === 3 && !reports.find(r => r.taskId === id)) {
+    reports.unshift({
+      id: Date.now(), taskId: id, from: '운영 매니저',
+      title: t.title,
+      body: `"${t.title}" 업무가 완료되었습니다. 담당 팀(${t.team})에서 정상 수행하였으며 운영 매니저 검토가 완료되었습니다.`,
+      isNew: true, confirmed: false
+    });
+    showToast('보고 수신함에 새 보고가 도착했습니다');
+    renderReports();
+  }
+  saveData();
+  renderBoard();
+}
+
+function confirmReport(id) {
+  const r = reports.find(x => x.id === id);
+  if (r) { r.confirmed = true; r.isNew = false; }
+  saveData();
+  renderReports();
+  showToast('보고를 확인했습니다');
+}
+
+function toggleForm() {
+  const card = document.getElementById('form-card');
+  card.classList.toggle('open');
+  if (card.classList.contains('open')) {
+    document.getElementById('task-title-input').focus();
+  }
+}
+
+function addTask() {
+  const title = document.getElementById('task-title-input').value.trim();
+  const team = document.getElementById('task-team').value;
+  const due = document.getElementById('task-due').value;
+  const desc = document.getElementById('task-desc').value.trim();
+  const priority = document.getElementById('task-priority').value;
+  if (!title || !team) { alert('제목과 담당 팀을 입력해주세요.'); return; }
+  tasks.unshift({ id: nextId++, title, team, due: due || '미정', priority, desc, status: 0 });
+  saveData();
+  renderBoard();
+  toggleForm();
+  document.getElementById('task-title-input').value = '';
+  document.getElementById('task-team').value = '';
+  document.getElementById('task-due').value = '';
+  document.getElementById('task-desc').value = '';
+  document.getElementById('task-priority').value = '보통';
+  showToast('업무 지시가 전달되었습니다');
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+renderBoard();
+renderReports();
+</script>
+</body>
+</html>
